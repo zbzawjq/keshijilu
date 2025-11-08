@@ -68,8 +68,29 @@ class CloudSync {
         this.syncCode = code;
         localStorage.setItem('syncCode', code);
         
-        // 立即同步本地数据到云端
-        await this.uploadLocalData();
+        // 先检查云端是否有数据
+        try {
+            this.setSyncingStatus(true);
+            const docId = this.generateDocId(this.syncCode);
+            const docRef = this.db.collection('salaryData').doc(docId);
+            const doc = await docRef.get();
+
+            if (doc.exists) {
+                // 云端有数据，下载到本地
+                console.log('检测到云端数据，正在下载...');
+                await this.downloadCloudData();
+            } else {
+                // 云端没有数据，上传本地数据
+                console.log('云端无数据，正在上传本地数据...');
+                await this.uploadLocalData();
+            }
+            
+            this.setSyncingStatus(false);
+        } catch (error) {
+            console.error('同步数据失败:', error);
+            this.setSyncingStatus(false);
+            throw error;
+        }
         
         // 开启实时同步
         this.startRealtimeSync();
@@ -120,8 +141,6 @@ class CloudSync {
         if (!this.syncCode || !this.db) return;
 
         try {
-            this.setSyncingStatus(true);
-            
             const docId = this.generateDocId(this.syncCode);
             const docRef = this.db.collection('salaryData').doc(docId);
             const doc = await docRef.get();
@@ -129,37 +148,41 @@ class CloudSync {
             if (doc.exists) {
                 const data = doc.data();
                 
+                console.log('从云端获取到数据:', {
+                    records: data.records?.length || 0,
+                    students: data.students?.length || 0,
+                    classes: data.classes?.length || 0
+                });
+                
                 // 更新本地数据
-                if (data.records) {
+                if (data.records !== undefined) {
                     localStorage.setItem('teacherSalaryRecords', JSON.stringify(data.records));
                 }
-                if (data.students) {
+                if (data.students !== undefined) {
                     localStorage.setItem('teacherStudents', JSON.stringify(data.students));
                 }
-                if (data.classes) {
+                if (data.classes !== undefined) {
                     localStorage.setItem('teacherClasses', JSON.stringify(data.classes));
                 }
 
                 this.lastSyncTime = new Date().toISOString();
                 localStorage.setItem('lastSyncTime', this.lastSyncTime);
                 
-                console.log('数据已从云端下载');
-                this.setSyncingStatus(false);
+                console.log('数据已从云端下载并保存到本地');
                 
                 // 通知页面刷新数据
                 if (window.tracker) {
+                    console.log('正在刷新页面数据...');
                     window.tracker.reloadData();
                 }
                 
                 return true;
             } else {
-                // 云端没有数据，上传本地数据
-                await this.uploadLocalData();
-                return true;
+                console.log('云端没有数据');
+                return false;
             }
         } catch (error) {
             console.error('下载数据失败:', error);
-            this.setSyncingStatus(false);
             throw error;
         }
     }
