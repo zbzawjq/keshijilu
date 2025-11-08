@@ -26,6 +26,12 @@ body {
     color: var(--text-primary);
 }
 
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -48,11 +54,29 @@ header h1 {
     opacity: 0.9;
 }
 
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .subtitle {
+        font-size: 0.9rem;
+    }
+}
+
 .summary-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+    .summary-cards {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
 }
 
 .card {
@@ -84,6 +108,22 @@ header h1 {
     margin-bottom: 8px;
 }
 
+@media (max-width: 768px) {
+    .card {
+        padding: 16px;
+        gap: 12px;
+        border-radius: 12px;
+    }
+    
+    .card-icon {
+        font-size: 1.8rem;
+    }
+    
+    .card-label {
+        font-size: 0.8rem;
+    }
+}
+
 .month-selector {
     border: none;
     background: transparent;
@@ -113,6 +153,12 @@ header h1 {
     color: var(--primary-color);
 }
 
+@media (max-width: 768px) {
+    .card-value {
+        font-size: 1.3rem;
+    }
+}
+
 .main-content {
     display: grid;
     grid-template-columns: 1fr;
@@ -130,6 +176,18 @@ h2 {
     font-size: 1.5rem;
     margin-bottom: 24px;
     color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    section {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    h2 {
+        font-size: 1.2rem;
+        margin-bottom: 16px;
+    }
 }
 
 .form-row {
@@ -345,6 +403,37 @@ input:focus, select:focus {
     color: var(--secondary-color);
 }
 
+@media (max-width: 768px) {
+    .record-date {
+        padding: 8px;
+        min-width: 60px;
+    }
+    
+    .record-date .day {
+        font-size: 1.3rem;
+    }
+    
+    .record-date .month {
+        font-size: 0.75rem;
+    }
+    
+    .record-course {
+        font-size: 0.95rem;
+    }
+    
+    .record-details {
+        font-size: 0.8rem;
+    }
+    
+    .record-notes {
+        font-size: 0.75rem;
+    }
+    
+    .record-salary {
+        font-size: 1.1rem;
+    }
+}
+
 .record-delete {
     padding: 8px 16px;
     background: transparent;
@@ -377,13 +466,11 @@ input:focus, select:focus {
 }
 
 @media (max-width: 768px) {
-    header h1 {
-        font-size: 2rem;
-    }
-    
     .record-item {
         grid-template-columns: 1fr;
         text-align: center;
+        padding: 12px;
+        gap: 12px;
     }
     
     .record-date {
@@ -398,11 +485,25 @@ input:focus, select:focus {
     .filter-group select,
     .filter-group button {
         width: 100%;
+        font-size: 0.9rem;
+        padding: 10px 16px;
     }
     
     .section-header {
         flex-direction: column;
         align-items: stretch;
+    }
+    
+    .student-selector-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .btn-manage-student,
+    .btn-manage-class {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 0.9rem;
     }
 }
 
@@ -461,6 +562,14 @@ input:focus, select:focus {
     animation: slideUp 0.3s ease-out;
 }
 
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-height: 85vh;
+        border-radius: 12px;
+    }
+}
+
 .modal-header {
     padding: 24px 30px;
     border-bottom: 2px solid var(--border-color);
@@ -472,6 +581,17 @@ input:focus, select:focus {
 .modal-header h2 {
     margin: 0;
     font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .modal-header {
+        padding: 16px 20px;
+    }
+    
+    .modal-header h2,
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
 }
 
 .modal-close {
@@ -499,6 +619,12 @@ input:focus, select:focus {
     padding: 30px;
     overflow-y: auto;
     flex: 1;
+}
+
+@media (max-width: 768px) {
+    .modal-body {
+        padding: 16px;
+    }
 }
 
 #previewModal .modal-body {
@@ -909,6 +1035,35 @@ input:focus, select:focus {
     color: var(--text-secondary);
 }
 
+@media (max-width: 768px) {
+    .student-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px;
+    }
+    
+    .student-name {
+        font-size: 0.95rem;
+    }
+    
+    .student-details {
+        font-size: 0.8rem;
+    }
+    
+    .student-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .btn-edit-student,
+    .btn-delete-student {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
+
 .student-actions {
     display: flex;
     gap: 8px;
@@ -995,4 +1150,267 @@ input:focus, select:focus {
     color: var(--primary-color);
     font-size: 1.3rem;
     font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .detail-row {
+        padding: 10px 12px;
+    }
+    
+    .detail-label {
+        font-size: 0.85rem;
+    }
+    
+    .detail-value {
+        font-size: 0.9rem;
+    }
+    
+    .detail-value.total-salary {
+        font-size: 1.1rem;
+    }
+}
+
+/* 额外的小屏幕优化 (360px - 480px) */
+@media (max-width: 480px) {
+    body {
+        padding: 8px;
+    }
+    
+    header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .card {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .card-icon {
+        font-size: 1.5rem;
+    }
+    
+    .card-value {
+        font-size: 1.1rem;
+    }
+    
+    .card-label {
+        font-size: 0.75rem;
+    }
+    
+    section {
+        padding: 12px;
+    }
+    
+    h2 {
+        font-size: 1rem;
+    }
+    
+    .btn-primary, .btn-secondary, .btn-info {
+        font-size: 0.9rem;
+        padding: 10px 16px;
+    }
+    
+    .modal-header h2,
+    .modal-header h3 {
+        font-size: 1rem;
+    }
+    
+    .student-name {
+        font-size: 0.9rem;
+    }
+    
+    .student-details {
+        font-size: 0.75rem;
+    }
+    
+    .preview-table th,
+    .preview-table td {
+        padding: 8px 6px;
+        font-size: 0.85rem;
+    }
+    
+    input, select {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+    
+    label {
+        font-size: 0.85rem;
+    }
+}
+
+/* 超小屏幕优化 (< 360px) */
+@media (max-width: 360px) {
+    header h1 {
+        font-size: 1.2rem;
+    }
+    
+    .card-value {
+        font-size: 1rem;
+    }
+    
+    .record-date .day {
+        font-size: 1.1rem;
+    }
+    
+    .record-date .month {
+        font-size: 0.7rem;
+    }
+    
+    .student-name {
+        font-size: 0.85rem;
+    }
+}
+
+/* 云端同步样式 */
+.sync-status {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-sync {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-sync:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
+}
+
+.btn-sync.synced {
+    background: rgba(16, 185, 129, 0.3);
+    border-color: rgba(16, 185, 129, 0.8);
+}
+
+.btn-sync.syncing {
+    background: rgba(59, 130, 246, 0.3);
+    border-color: rgba(59, 130, 246, 0.8);
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.btn-sync.syncing #syncStatusIcon {
+    animation: rotate 2s linear infinite;
+}
+
+.sync-info {
+    background: var(--bg-color);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.sync-info p {
+    margin: 8px 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.sync-warning {
+    color: #f59e0b !important;
+    font-weight: 600;
+    background: #fef3c7;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 4px solid #f59e0b;
+}
+
+.sync-form {
+    margin-top: 20px;
+}
+
+.sync-form small {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.sync-current {
+    background: #dbeafe;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 16px 0;
+    border-left: 4px solid #3b82f6;
+}
+
+.sync-current p {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.sync-current strong {
+    color: #3b82f6;
+}
+
+.sync-current span {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-left: 8px;
+}
+
+.sync-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.sync-actions button {
+    flex: 1;
+    min-width: 120px;
+}
+
+.sync-status-info {
+    margin-top: 20px;
+    padding: 12px;
+    background: var(--bg-color);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.sync-status-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .sync-status {
+        margin-top: 12px;
+    }
+    
+    .btn-sync {
+        padding: 6px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .sync-actions {
+        flex-direction: column;
+    }
+    
+    .sync-actions button {
+        width: 100%;
+    }
 }
