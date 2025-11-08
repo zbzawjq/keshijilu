@@ -1521,12 +1521,22 @@ class SalaryTracker {
                 return;
             }
 
+            // 设置同步码（会自动从云端下载或上传数据）
             await cloudSync.setSyncCode(syncCode);
-            this.showSuccessMessage('同步设置成功！');
+            
+            // 关闭模态框
             this.closeSyncModal();
             
-            // 更新UI
+            // 立即刷新数据显示
+            this.reloadData();
+            
+            // 显示成功消息
+            this.showSuccessMessage('云端同步已启用！数据已同步');
+            
+            // 更新同步状态UI
             cloudSync.updateSyncStatus();
+            
+            console.log('同步设置完成，数据已刷新');
         } catch (error) {
             alert('同步设置失败: ' + error.message);
             console.error('同步设置失败:', error);
