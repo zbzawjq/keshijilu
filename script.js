@@ -35,6 +35,10 @@ class SalaryTracker {
 
     saveRecords() {
         localStorage.setItem('teacherSalaryRecords', JSON.stringify(this.records));
+        // 自动同步到云端
+        if (cloudSync && cloudSync.getSyncInfo().enabled) {
+            cloudSync.uploadLocalData().catch(err => console.error('自动同步失败:', err));
+        }
     }
 
     loadStudents() {
@@ -44,6 +48,10 @@ class SalaryTracker {
 
     saveStudents() {
         localStorage.setItem('teacherStudents', JSON.stringify(this.students));
+        // 自动同步到云端
+        if (cloudSync && cloudSync.getSyncInfo().enabled) {
+            cloudSync.uploadLocalData().catch(err => console.error('自动同步失败:', err));
+        }
     }
 
     loadClasses() {
@@ -53,6 +61,10 @@ class SalaryTracker {
 
     saveClasses() {
         localStorage.setItem('teacherClasses', JSON.stringify(this.classes));
+        // 自动同步到云端
+        if (cloudSync && cloudSync.getSyncInfo().enabled) {
+            cloudSync.uploadLocalData().catch(err => console.error('自动同步失败:', err));
+        }
     }
 
     addClass(classData) {
@@ -1446,6 +1458,114 @@ class SalaryTracker {
                 this.closeRecordDetail();
             }
         });
+
+        // 点击同步模态框背景关闭
+        document.getElementById('syncModal').addEventListener('click', (e) => {
+            if (e.target.id === 'syncModal') {
+                this.closeSyncModal();
+            }
+        });
+
+        // 同步表单提交
+        document.getElementById('syncForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleSyncSubmit();
+        });
+    }
+
+    // 云端同步相关方法
+    openSyncModal() {
+        const modal = document.getElementById('syncModal');
+        modal.classList.add('show');
+        
+        // 显示当前同步状态
+        if (cloudSync && cloudSync.getSyncInfo().enabled) {
+            const syncInfo = cloudSync.getSyncInfo();
+            document.getElementById('syncCurrentCode').style.display = 'block';
+            document.getElementById('currentCodeDisplay').textContent = syncInfo.syncCode;
+            document.getElementById('syncCode').value = syncInfo.syncCode;
+            document.getElementById('syncSetBtn').style.display = 'none';
+            document.getElementById('syncChangeBtn').style.display = 'inline-block';
+            document.getElementById('syncDisableBtn').style.display = 'inline-block';
+            
+            // 显示最后同步时间
+            if (syncInfo.lastSyncTime) {
+                const lastTime = new Date(syncInfo.lastSyncTime).toLocaleString('zh-CN');
+                document.getElementById('syncLastUpdate').textContent = `最后同步: ${lastTime}`;
+            }
+        } else {
+            document.getElementById('syncCurrentCode').style.display = 'none';
+            document.getElementById('syncSetBtn').style.display = 'inline-block';
+            document.getElementById('syncChangeBtn').style.display = 'none';
+            document.getElementById('syncDisableBtn').style.display = 'none';
+            document.getElementById('syncCode').value = '';
+        }
+    }
+
+    closeSyncModal() {
+        const modal = document.getElementById('syncModal');
+        modal.classList.remove('show');
+    }
+
+    async handleSyncSubmit() {
+        const syncCode = document.getElementById('syncCode').value.trim();
+        
+        if (!syncCode || syncCode.length < 6) {
+            alert('同步码至少需要6位');
+            return;
+        }
+
+        try {
+            if (!cloudSync) {
+                alert('同步服务未初始化，请刷新页面重试');
+                return;
+            }
+
+            await cloudSync.setSyncCode(syncCode);
+            this.showSuccessMessage('同步设置成功！');
+            this.closeSyncModal();
+            
+            // 更新UI
+            cloudSync.updateSyncStatus();
+        } catch (error) {
+            alert('同步设置失败: ' + error.message);
+            console.error('同步设置失败:', error);
+        }
+    }
+
+    async changeSyncCode() {
+        if (!confirm('更改同步码会断开当前同步，确定要继续吗？')) {
+            return;
+        }
+        
+        cloudSync.disableSync();
+        document.getElementById('syncCurrentCode').style.display = 'none';
+        document.getElementById('syncSetBtn').style.display = 'inline-block';
+        document.getElementById('syncChangeBtn').style.display = 'none';
+        document.getElementById('syncDisableBtn').style.display = 'none';
+        document.getElementById('syncCode').value = '';
+    }
+
+    async disableSync() {
+        if (!confirm('停用同步后，数据将只保存在本地。确定要停用吗？')) {
+            return;
+        }
+        
+        cloudSync.disableSync();
+        this.showSuccessMessage('已停用云端同步');
+        this.closeSyncModal();
+    }
+
+    // 重新加载数据（用于云端同步更新后）
+    reloadData() {
+        this.records = this.loadRecords();
+        this.students = this.loadStudents();
+        this.classes = this.loadClasses();
+        this.updateSummary();
+        this.updateMonthFilter();
+        this.updateStudentSelect();
+        this.renderRecords();
+        console.log('数据已从云端重新加载');
     }
 }
 
