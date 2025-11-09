@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>课时工资计算器</title>
+    
+    <!-- PWA 支持 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="课时计算">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDK - 使用 jsDelivr CDN（国内可访问） -->
+    <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-app-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- 未登录遮罩层 -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-overlay-content">
+            <div class="welcome-header">
+                <h1>📚 课时工资计算器</h1>
+                <p class="welcome-subtitle">为琪琪量身定制的课时记录工具</p>
+                <p class="welcome-notice">请先登录或注册账号以使用完整功能</p>
+                <div class="welcome-buttons">
+                    <button class="btn-welcome-login" id="btnWelcomeLogin">
+                        <span>🔐</span>
+                        <span>立即登录</span>
+                    </button>
+                    <button class="btn-welcome-register" id="btnWelcomeRegister">
+                        <span>📝</span>
+                        <span>注册账号</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>📚 课时工资计算器</h1>
+            <p class="subtitle">为琪琪量身定制的课时记录工具</p>
+            <div class="sync-status">
+                <button class="btn-sync" id="userBtn" onclick="cloudSync.openUserModal()">
+                    <span id="userStatusIcon">👤</span>
+                    <span id="userStatusText">登录</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="summary-cards">
+            <div class="card">
+                <div class="card-icon">💰</div>
+                <div class="card-content">
+                    <div class="card-label">
+                        <select id="monthTotalFilter" class="month-selector">
+                            <option value="">本月总工资</option>
+                        </select>
+                    </div>
+                    <div class="card-value" id="monthTotal">¥0.00</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon">⏰</div>
+                <div class="card-content">
+                    <div class="card-label">
+                        <select id="monthHoursFilter" class="month-selector">
+                            <option value="">本月总课时</option>
+                        </select>
+                    </div>
+                    <div class="card-value" id="monthHours">0</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📊</div>
+                <div class="card-content">
+                    <div class="card-label">累计总工资</div>
+                    <div class="card-value" id="totalSalary">¥0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <section class="records-section">
+                <div class="section-header">
+                    <h2>📋 上课记录</h2>
+                    <div class="filter-group">
+                        <select id="monthFilter">
+                            <option value="">选择月份</option>
+                        </select>
+                        <button class="btn-info" id="previewBtn">预览</button>
+                        <button class="btn-secondary" id="exportExcelBtn">导出Excel</button>
+                    </div>
+                </div>
+                <div class="records-list" id="recordsList">
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <p>暂无记录，开始添加你的第一条课时记录吧！</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="add-record-section">
+                <h2>➕ 添加课时记录</h2>
+                <form id="recordForm">
+                    <div class="student-selector-row">
+                        <div class="form-group flex-grow">
+                            <label for="studentSelect">选择学生</label>
+                            <select id="studentSelect">
+                                <option value="">选择学生（可选）</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn-manage-student" id="manageStudentBtn">👤 管理学生</button>
+                        <button type="button" class="btn-manage-class" id="manageClassBtn">👥 管理班级</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="recordGrade">年级</label>
+                            <input type="text" id="recordGrade" placeholder="例如：初三" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="recordDate">日期</label>
+                            <input type="date" id="recordDate" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="courseName">课程名称</label>
+                            <input type="text" id="courseName" placeholder="例如：数学" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startTime">开始时间</label>
+                            <input type="text" id="startTime" placeholder="选择时间" readonly required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">结束时间</label>
+                            <input type="text" id="endTime" placeholder="自动计算或选择" readonly required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hours">课时数（小时）</label>
+                            <input type="number" id="hours" placeholder="自动计算" step="0.5" min="0.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="rate">课时费（元/小时）</label>
+                            <input type="number" id="rate" placeholder="100" step="1" min="0" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">备注（可选）</label>
+                        <input type="text" id="notes" placeholder="例如：高三班">
+                    </div>
+                    <button type="submit" class="btn-primary">添加记录</button>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📊 课时预览</h2>
+                <button class="modal-close" onclick="tracker.closePreview()">&times;</button>
+            </div>
+            <div class="modal-body" id="previewContent"></div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="tracker.closePreview()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 时间选择器模态框 -->
+    <div id="timePickerModal" class="modal">
+        <div class="time-picker-content">
+            <div class="time-picker-header">
+                <button class="time-picker-cancel" onclick="tracker.cancelTimePicker()">取消</button>
+                <span class="time-picker-title">选择时间</span>
+                <button class="time-picker-confirm" onclick="tracker.confirmTimePicker()">确定</button>
+            </div>
+            <div class="time-picker-body">
+                <div class="time-picker-wheels">
+                    <div class="time-wheel">
+                        <div class="wheel-overlay"></div>
+                        <div class="wheel-items" id="hourWheel"></div>
+                    </div>
+                    <div class="wheel-separator">:</div>
+                    <div class="time-wheel">
+                        <div class="wheel-overlay"></div>
+                        <div class="wheel-items" id="minuteWheel"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 学生管理模态框 -->
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 学生管理</h2>
+                <button class="modal-close" onclick="tracker.closeStudentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="studentForm" class="student-form">
+                    <h3>添加学生</h3>
+                    <div class="form-group">
+                        <label for="studentName">学生姓名</label>
+                        <input type="text" id="studentName" placeholder="例如：张三" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentGrade">年级</label>
+                        <input type="text" id="studentGrade" placeholder="例如：初三" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentCourse">课程名称</label>
+                        <input type="text" id="studentCourse" placeholder="例如：数学" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="studentStartTime">上课时间</label>
+                            <input type="text" id="studentStartTime" placeholder="选择时间" readonly required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentEndTime">下课时间</label>
+                            <input type="text" id="studentEndTime" placeholder="选择时间" readonly required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentRate">课时费（元/小时）</label>
+                        <input type="number" id="studentRate" placeholder="100" step="1" min="0" required>
+                    </div>
+                    <button type="submit" class="btn-primary">添加学生</button>
+                </form>
+                
+                <div class="student-list-section">
+                    <h3>学生列表</h3>
+                    <div id="studentList" class="student-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 班级管理模态框 -->
+    <div id="classModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👥 班级管理</h2>
+                <button class="modal-close" onclick="tracker.closeClassModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="classForm" class="student-form">
+                    <h3>添加班级</h3>
+                    <div class="form-group">
+                        <label for="className">班级名称</label>
+                        <input type="text" id="className" placeholder="例如：初三数学班" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="classGrade">年级</label>
+                        <input type="text" id="classGrade" placeholder="例如：初三" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="classCourse">课程名称</label>
+                        <input type="text" id="classCourse" placeholder="例如：数学" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="classStartTime">上课时间</label>
+                            <input type="text" id="classStartTime" placeholder="选择时间" readonly required>
+                        </div>
+                        <div class="form-group">
+                            <label for="classEndTime">下课时间</label>
+                            <input type="text" id="classEndTime" placeholder="选择时间" readonly required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="classSize">班级人数</label>
+                            <input type="number" id="classSize" placeholder="10" step="1" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="classRate">课时费（元/小时）</label>
+                            <input type="number" id="classRate" placeholder="100" step="1" min="0" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">添加班级</button>
+                </form>
+                
+                <div class="student-list-section">
+                    <h3>班级列表</h3>
+                    <div id="classList" class="student-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 记录详情模态框 -->
+    <div id="recordDetailModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>📖 上课详情</h3>
+                <button class="modal-close" onclick="tracker.closeRecordDetail()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="recordDetailContent" class="record-detail-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户登录/注册模态框 -->
+    <div id="authModal" class="modal auth-modal-large">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="authModalTitle">🔐 账号登录</h3>
+                <button class="modal-close" id="authModalClose" style="display: none;">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- 登录表单 -->
+                <div id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="loginEmail">邮箱</label>
+                        <input type="email" id="loginEmail" placeholder="请输入邮箱" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">密码</label>
+                        <input type="password" id="loginPassword" placeholder="请输入密码（至少6位）" required autocomplete="current-password">
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="rememberMe">
+                            <span>记住账号密码</span>
+                        </label>
+                    </div>
+                    <button type="button" class="btn-primary" id="btnLogin">登录</button>
+                    <div class="auth-switch">
+                        <p>还没有账号？<a href="javascript:void(0)" id="linkToRegister">立即注册</a></p>
+                    </div>
+                </div>
+                
+                <!-- 注册表单 -->
+                <div id="registerForm" class="auth-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="registerEmail">邮箱</label>
+                        <input type="email" id="registerEmail" placeholder="请输入邮箱" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">密码</label>
+                        <input type="password" id="registerPassword" placeholder="请输入密码（至少6位）" required autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPasswordConfirm">确认密码</label>
+                        <input type="password" id="registerPasswordConfirm" placeholder="请再次输入密码" required autocomplete="new-password">
+                    </div>
+                    <button type="button" class="btn-primary" id="btnRegister">注册</button>
+                    <div class="auth-switch">
+                        <p>已有账号？<a href="javascript:void(0)" id="linkToLogin">立即登录</a></p>
+                    </div>
+                </div>
+                
+                <!-- 用户信息显示 -->
+                <div id="userInfo" class="user-info" style="display: none;">
+                    <div class="user-email">
+                        <span>📧 </span>
+                        <span id="currentUserEmail"></span>
+                    </div>
+                    <div class="sync-info-display">
+                        <p><span id="syncStatusDisplay">✅ 已登录，数据自动同步</span></p>
+                        <p class="last-sync-time" id="lastSyncDisplay"></p>
+                    </div>
+                    <button type="button" class="btn-danger" onclick="cloudSync.logout()">退出登录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="sync.js"></script>
+    <script src="script.js"></script>
+    
+    <!-- PWA Service Worker 注册 -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker 注册成功:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker 注册失败:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
