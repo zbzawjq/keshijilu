@@ -384,6 +384,23 @@
                         <p><span id="syncStatusDisplay">✅ 已登录，数据自动同步</span></p>
                         <p class="last-sync-time" id="lastSyncDisplay"></p>
                     </div>
+                    
+                    <!-- 手动同步按钮 -->
+                    <div class="manual-sync-buttons">
+                        <h4 style="margin: 15px 0 10px 0; color: #666; font-size: 14px;">🔄 手动同步</h4>
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <button type="button" class="btn-sync-download" onclick="cloudSync.manualDownload()">
+                                ⬇️ 从云端下载
+                            </button>
+                            <button type="button" class="btn-sync-upload" onclick="cloudSync.manualUpload()">
+                                ⬆️ 上传到云端
+                            </button>
+                        </div>
+                        <p style="font-size: 12px; color: #888; margin: 0;">
+                            💡 提示：自动同步失败时可使用手动同步
+                        </p>
+                    </div>
+                    
                     <button type="button" class="btn-danger" onclick="cloudSync.logout()">退出登录</button>
                 </div>
             </div>
