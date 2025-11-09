@@ -55,12 +55,22 @@ class CloudSync {
                 });
             
             // 监听用户登录状态
-            this.auth.onAuthStateChanged((user) => {
+            this.auth.onAuthStateChanged(async (user) => {
                 clearTimeout(networkTimeout); // 清除超时
                 this.currentUser = user;
                 if (user) {
                     console.log('用户已登录:', user.email);
                     this.updateUserStatus(user.email);
+                    
+                    // 登录后立即下载云端数据
+                    console.log('正在从云端同步数据...');
+                    try {
+                        await this.downloadCloudData();
+                        console.log('云端数据同步完成');
+                    } catch (error) {
+                        console.error('云端数据同步失败:', error);
+                    }
+                    
                     this.startRealtimeSync();
                     this.hideLoginOverlay();
                     // 关闭认证模态框
@@ -402,8 +412,24 @@ class CloudSync {
             // 登录成功后，onAuthStateChanged会自动处理所有状态更新和UI显示
             this.setSyncingStatus(false);
             
-            // 显示成功提示
-            alert('✅ 登录成功！欢迎回来！');
+            // 强制刷新页面数据显示
+            if (window.tracker) {
+                console.log('登录后强制刷新页面数据...');
+                window.tracker.reloadData();
+                // 显示成功提示
+                alert('✅ 登录成功！数据已同步！');
+            } else {
+                // 如果tracker未初始化，延迟刷新或提示用户手动刷新
+                console.warn('tracker未就绪，1秒后重试...');
+                setTimeout(() => {
+                    if (window.tracker) {
+                        window.tracker.reloadData();
+                        alert('✅ 登录成功！数据已同步！');
+                    } else {
+                        alert('✅ 登录成功！\n\n💡 请手动刷新页面以加载最新数据（按F5）');
+                    }
+                }, 1000);
+            }
         } catch (error) {
             console.error('登录失败:', error);
             this.setSyncingStatus(false);
@@ -544,11 +570,19 @@ class CloudSync {
                 this.lastSyncTime = new Date();
                 
                 console.log('数据已从云端下载并保存到本地');
+                console.log('本地localStorage已更新:', {
+                    records: localStorage.getItem('teacherSalaryRecords')?.length || 0,
+                    students: localStorage.getItem('teacherStudents')?.length || 0,
+                    classes: localStorage.getItem('teacherClasses')?.length || 0
+                });
                 
                 // 通知页面刷新数据
                 if (window.tracker) {
                     console.log('正在刷新页面数据...');
                     window.tracker.reloadData();
+                    console.log('页面数据刷新完成');
+                } else {
+                    console.warn('警告: window.tracker 未初始化，无法刷新页面');
                 }
                 
                 return true;
@@ -822,6 +856,172 @@ class CloudSync {
     showRegisterFormDirect() {
         this.openUserModal();
         this.showRegisterForm();
+    }
+
+    // 手动下载数据（从云端到本地）
+    async manualDownload() {
+        if (this.offlineMode) {
+            alert('⚠️ 当前为离线模式\n\n无法从云端下载数据');
+            return;
+        }
+
+        if (!this.currentUser) {
+            alert('❌ 请先登录');
+            return;
+        }
+
+        try {
+            // 显示同步状态
+            this.setSyncingStatus(true, '正在下载...');
+            const syncStatusDisplay = document.getElementById('syncStatusDisplay');
+            if (syncStatusDisplay) {
+                syncStatusDisplay.textContent = '⬇️ 正在从云端下载数据...';
+            }
+
+            console.log('手动下载：开始从云端下载数据...');
+            
+            const userId = this.currentUser.uid;
+            const docRef = this.db.collection('userData').doc(userId);
+            const doc = await docRef.get();
+
+            if (doc.exists) {
+                const data = doc.data();
+                
+                // 保存数据前先显示数量
+                const recordsCount = data.records?.length || 0;
+                const studentsCount = data.students?.length || 0;
+                const classesCount = data.classes?.length || 0;
+                
+                console.log(`手动下载：云端数据 - 记录:${recordsCount}, 学生:${studentsCount}, 班级:${classesCount}`);
+                
+                // 更新本地数据
+                if (data.records !== undefined) {
+                    localStorage.setItem('teacherSalaryRecords', JSON.stringify(data.records));
+                }
+                if (data.students !== undefined) {
+                    localStorage.setItem('teacherStudents', JSON.stringify(data.students));
+                }
+                if (data.classes !== undefined) {
+                    localStorage.setItem('teacherClasses', JSON.stringify(data.classes));
+                }
+
+                this.lastSyncTime = new Date();
+                
+                // 刷新页面显示
+                if (window.tracker) {
+                    console.log('手动下载：刷新页面数据...');
+                    window.tracker.reloadData();
+                }
+                
+                // 更新同步状态显示
+                if (syncStatusDisplay) {
+                    syncStatusDisplay.textContent = '✅ 已登录，数据自动同步';
+                }
+                this.setSyncingStatus(false);
+                
+                // 更新最后同步时间
+                const lastSyncDisplay = document.getElementById('lastSyncDisplay');
+                if (lastSyncDisplay) {
+                    lastSyncDisplay.textContent = '最后同步: ' + this.lastSyncTime.toLocaleString('zh-CN');
+                }
+                
+                console.log('手动下载：下载完成');
+                alert(`✅ 下载成功！\n\n📊 已下载数据：\n• 课时记录：${recordsCount} 条\n• 学生信息：${studentsCount} 个\n• 班级信息：${classesCount} 个\n\n数据已更新到本地！`);
+            } else {
+                console.log('手动下载：云端暂无数据');
+                this.setSyncingStatus(false);
+                if (syncStatusDisplay) {
+                    syncStatusDisplay.textContent = '✅ 已登录，数据自动同步';
+                }
+                alert('⚠️ 云端暂无数据\n\n您可能是首次使用，请先添加数据后使用"上传到云端"功能。');
+            }
+        } catch (error) {
+            console.error('手动下载失败:', error);
+            this.setSyncingStatus(false);
+            const syncStatusDisplay = document.getElementById('syncStatusDisplay');
+            if (syncStatusDisplay) {
+                syncStatusDisplay.textContent = '✅ 已登录，数据自动同步';
+            }
+            alert(`❌ 下载失败\n\n错误信息：${error.message}\n\n请检查网络连接后重试。`);
+        }
+    }
+
+    // 手动上传数据（从本地到云端）
+    async manualUpload() {
+        if (this.offlineMode) {
+            alert('⚠️ 当前为离线模式\n\n无法上传数据到云端');
+            return;
+        }
+
+        if (!this.currentUser) {
+            alert('❌ 请先登录');
+            return;
+        }
+
+        // 获取本地数据数量
+        const records = JSON.parse(localStorage.getItem('teacherSalaryRecords') || '[]');
+        const students = JSON.parse(localStorage.getItem('teacherStudents') || '[]');
+        const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+        
+        const recordsCount = records.length;
+        const studentsCount = students.length;
+        const classesCount = classes.length;
+
+        // 确认上传
+        const confirmMsg = `📤 确认上传\n\n将要上传的数据：\n• 课时记录：${recordsCount} 条\n• 学生信息：${studentsCount} 个\n• 班级信息：${classesCount} 个\n\n⚠️ 这将覆盖云端的现有数据！\n\n确定要上传吗？`;
+        
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        try {
+            // 显示同步状态
+            this.setSyncingStatus(true, '正在上传...');
+            const syncStatusDisplay = document.getElementById('syncStatusDisplay');
+            if (syncStatusDisplay) {
+                syncStatusDisplay.textContent = '⬆️ 正在上传数据到云端...';
+            }
+
+            console.log('手动上传：开始上传数据到云端...');
+            console.log(`手动上传：本地数据 - 记录:${recordsCount}, 学生:${studentsCount}, 班级:${classesCount}`);
+            
+            const userId = this.currentUser.uid;
+            const docRef = this.db.collection('userData').doc(userId);
+
+            // 上传到云端
+            await docRef.set({
+                records: records,
+                students: students,
+                classes: classes,
+                lastUpdate: firebase.firestore.FieldValue.serverTimestamp(),
+                userEmail: this.currentUser.email
+            }, { merge: true });
+
+            this.lastSyncTime = new Date();
+            
+            // 更新同步状态显示
+            if (syncStatusDisplay) {
+                syncStatusDisplay.textContent = '✅ 已登录，数据自动同步';
+            }
+            this.setSyncingStatus(false);
+            
+            // 更新最后同步时间
+            const lastSyncDisplay = document.getElementById('lastSyncDisplay');
+            if (lastSyncDisplay) {
+                lastSyncDisplay.textContent = '最后同步: ' + this.lastSyncTime.toLocaleString('zh-CN');
+            }
+            
+            console.log('手动上传：上传完成');
+            alert(`✅ 上传成功！\n\n📊 已上传数据：\n• 课时记录：${recordsCount} 条\n• 学生信息：${studentsCount} 个\n• 班级信息：${classesCount} 个\n\n数据已同步到云端！`);
+        } catch (error) {
+            console.error('手动上传失败:', error);
+            this.setSyncingStatus(false);
+            const syncStatusDisplay = document.getElementById('syncStatusDisplay');
+            if (syncStatusDisplay) {
+                syncStatusDisplay.textContent = '✅ 已登录，数据自动同步';
+            }
+            alert(`❌ 上传失败\n\n错误信息：${error.message}\n\n请检查网络连接后重试。`);
+        }
     }
 }
 
