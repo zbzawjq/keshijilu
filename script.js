@@ -42,15 +42,31 @@ class SalaryTracker {
     }
 
     loadStudents() {
+        console.log('loadStudents 被调用');
         const data = localStorage.getItem('teacherStudents');
-        return data ? JSON.parse(data) : [];
+        console.log('从 localStorage 读取的原始数据:', data);
+        const students = data ? JSON.parse(data) : [];
+        console.log('解析后的学生数据:', students);
+        console.log('学生数量:', students.length);
+        return students;
     }
 
     saveStudents() {
+        console.log('saveStudents 被调用，保存学生数:', this.students.length);
+        console.log('要保存的学生数据:', this.students);
         localStorage.setItem('teacherStudents', JSON.stringify(this.students));
+        console.log('已保存到 localStorage');
+        
+        // 验证保存是否成功
+        const saved = localStorage.getItem('teacherStudents');
+        console.log('从 localStorage 读取的数据:', saved);
+        
         // 自动同步到云端
         if (cloudSync && cloudSync.getSyncInfo().enabled) {
+            console.log('开始云同步...');
             cloudSync.uploadLocalData().catch(err => console.error('自动同步失败:', err));
+        } else {
+            console.log('云同步未启用');
         }
     }
 
@@ -963,11 +979,23 @@ class SalaryTracker {
     renderStudentList() {
         const listContainer = document.getElementById('studentList');
         
+        console.log('renderStudentList 被调用');
+        console.log('listContainer:', listContainer);
+        console.log('学生数量:', this.students.length);
+        console.log('学生列表:', this.students);
+        
+        if (!listContainer) {
+            console.error('找不到 studentList 容器元素！');
+            return;
+        }
+        
         if (this.students.length === 0) {
+            console.log('学生列表为空，显示空状态');
             listContainer.innerHTML = '<p class="empty-message">暂无学生，请先添加学生</p>';
             return;
         }
         
+        console.log('开始渲染学生列表，共', this.students.length, '个学生');
         listContainer.innerHTML = this.students.map(student => {
             const hours = this.calculateHoursFromTimes(student.startTime, student.endTime);
             return `
@@ -985,6 +1013,7 @@ class SalaryTracker {
                 </div>
             `;
         }).join('');
+        console.log('学生列表渲染完成');
     }
 
     renderClassList() {
