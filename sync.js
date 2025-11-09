@@ -1,11 +1,13 @@
 // Firebase配置
+// 注意：如果无法连接到Firebase，应用会自动切换到离线模式
 const firebaseConfig = {
     apiKey: "AIzaSyBgjaQILhhoEWVgs6LEAwoEUK3zFb2oCEc",
     authDomain: "zbzawjq-keshijisuan.firebaseapp.com",
     projectId: "zbzawjq-keshijisuan",
     storageBucket: "zbzawjq-keshijisuan.firebasestorage.app",
     messagingSenderId: "408881827749",
-    appId: "1:408881827749:web:870defc75e87281f8e224c"
+    appId: "1:408881827749:web:efe2129719fa19d98e224c",
+    measurementId: "G-682XQ3065D"
 };
 
 // 云端数据同步管理器（基于用户账号）
@@ -32,8 +34,10 @@ class CloudSync {
             
             // 设置网络超时
             const networkTimeout = setTimeout(() => {
-                console.warn('Firebase 网络连接超时，启用离线模式');
-                this.enableOfflineMode();
+                if (!this.offlineMode) {
+                    console.warn('Firebase 网络连接超时，启用离线模式');
+                    this.enableOfflineMode();
+                }
             }, 5000); // 5秒超时
             
             // 启用离线持久化
@@ -43,6 +47,10 @@ class CloudSync {
                         console.log('多个标签页打开，持久化失败');
                     } else if (err.code === 'unimplemented') {
                         console.log('浏览器不支持持久化');
+                    } else if (err.message.includes('configuration')) {
+                        console.error('Firebase 配置错误');
+                        clearTimeout(networkTimeout);
+                        this.enableOfflineMode();
                     }
                 });
             
@@ -59,19 +67,30 @@ class CloudSync {
                     console.log('用户未登录');
                     this.updateUserStatus(null);
                     this.stopRealtimeSync();
-                    this.showLoginOverlay();
+                    if (!this.offlineMode) {
+                        this.showLoginOverlay();
+                    }
                 }
             }, (error) => {
                 clearTimeout(networkTimeout);
                 console.error('Firebase 认证错误:', error);
-                // 网络错误时启用离线模式
-                if (error.code === 'auth/network-request-failed') {
+                // 网络或配置错误时启用离线模式
+                if (error.code === 'auth/network-request-failed' || 
+                    error.code === 'auth/configuration-not-found' ||
+                    error.message.includes('configuration')) {
                     this.enableOfflineMode();
                 }
             });
             
             // 尝试自动登录（如果有保存的凭据）
-            this.tryAutoLogin();
+            this.tryAutoLogin().catch((err) => {
+                console.error('自动登录失败:', err);
+                if (err.code === 'auth/configuration-not-found' || 
+                    err.message.includes('configuration')) {
+                    clearTimeout(networkTimeout);
+                    this.enableOfflineMode();
+                }
+            });
             
             console.log('Firebase初始化成功');
         } catch (error) {
@@ -82,8 +101,17 @@ class CloudSync {
 
     // 启用离线模式
     enableOfflineMode() {
+        // 防止重复触发
+        if (this.offlineMode) {
+            console.log('已经处于离线模式');
+            return;
+        }
+        
         console.log('=== 启用离线模式 ===');
         console.log('提示：应用将使用本地存储，数据仅保存在当前设备');
+        
+        // 标记为离线模式（先设置，避免重复触发）
+        this.offlineMode = true;
         
         // 隐藏登录遮罩层
         this.hideLoginOverlay();
@@ -100,49 +128,36 @@ class CloudSync {
         if (userStatusText) userStatusText.textContent = '离线模式';
         if (userStatusIcon) userStatusIcon.textContent = '📴';
         
-        // 显示提示
-        alert('⚠️ 无法连接到云端服务\n\n应用已切换到离线模式\n数据将仅保存在本地设备\n\n功能说明：\n✅ 可以正常添加、编辑、删除记录\n✅ 可以导出Excel\n✅ 数据保存在浏览器本地存储\n❌ 无法跨设备同步数据\n\n如需使用云同步功能，请确保网络可以访问 Firebase 服务');
-        
-        // 标记为离线模式
-        this.offlineMode = true;
+        // 显示提示（使用 setTimeout 确保在 DOM 更新后显示）
+        setTimeout(() => {
+            alert('⚠️ 无法连接到云端服务\n\n应用已切换到离线模式\n数据将仅保存在本地设备\n\n功能说明：\n✅ 可以正常添加、编辑、删除记录\n✅ 可以导出Excel\n✅ 数据保存在浏览器本地存储\n❌ 无法跨设备同步数据\n\n💡 提示：请定期导出Excel备份数据！');
+        }, 100);
     }
 
     // 绑定事件监听器
     bindEventListeners() {
         // 绑定事件的函数
         const bindEvents = () => {
-            console.log('开始绑定事件监听器...');
-            
             // 欢迎页面的按钮
             const btnWelcomeLogin = document.getElementById('btnWelcomeLogin');
             const btnWelcomeRegister = document.getElementById('btnWelcomeRegister');
             
             if (btnWelcomeLogin) {
-                console.log('绑定欢迎页登录按钮');
                 btnWelcomeLogin.addEventListener('click', () => {
-                    console.log('点击了欢迎页登录按钮');
                     this.showLoginFormDirect();
                 });
-            } else {
-                console.warn('未找到欢迎页登录按钮');
             }
             
             if (btnWelcomeRegister) {
-                console.log('绑定欢迎页注册按钮');
                 btnWelcomeRegister.addEventListener('click', () => {
-                    console.log('点击了欢迎页注册按钮');
                     this.showRegisterFormDirect();
                 });
-            } else {
-                console.warn('未找到欢迎页注册按钮');
             }
 
             // 模态框内的登录按钮
             const btnLogin = document.getElementById('btnLogin');
             if (btnLogin) {
-                console.log('绑定模态框登录按钮');
                 btnLogin.addEventListener('click', () => {
-                    console.log('点击了登录按钮');
                     this.login();
                 });
             }
@@ -150,9 +165,7 @@ class CloudSync {
             // 模态框内的注册按钮
             const btnRegister = document.getElementById('btnRegister');
             if (btnRegister) {
-                console.log('绑定模态框注册按钮');
                 btnRegister.addEventListener('click', () => {
-                    console.log('点击了注册按钮');
                     this.register();
                 });
             }
@@ -206,8 +219,6 @@ class CloudSync {
             if (registerEmail) registerEmail.addEventListener('keypress', handleRegisterEnter);
             if (registerPassword) registerPassword.addEventListener('keypress', handleRegisterEnter);
             if (registerPasswordConfirm) registerPasswordConfirm.addEventListener('keypress', handleRegisterEnter);
-            
-            console.log('事件绑定完成');
         };
 
         // DOM已经加载完成，直接绑定
@@ -258,6 +269,12 @@ class CloudSync {
             return;
         }
 
+        // 检查是否处于离线模式
+        if (this.offlineMode) {
+            alert('⚠️ 当前为离线模式\n\n无法注册账号，应用将使用本地存储。\n\n如需使用云同步功能，请确保网络可以访问 Firebase 服务后重新加载页面。');
+            return;
+        }
+
         try {
             this.setSyncingStatus(true, '注册中...');
             const userCredential = await this.auth.createUserWithEmailAndPassword(email, password);
@@ -273,6 +290,16 @@ class CloudSync {
         } catch (error) {
             console.error('注册失败:', error);
             this.setSyncingStatus(false);
+            
+            // 网络或配置错误，切换到离线模式
+            if (error.code === 'auth/network-request-failed' || 
+                error.code === 'auth/configuration-not-found' ||
+                error.message.includes('network') ||
+                error.message.includes('configuration')) {
+                alert('⚠️ 无法连接到云端服务\n\n正在切换到离线模式...');
+                this.enableOfflineMode();
+                return;
+            }
             
             if (error.code === 'auth/email-already-in-use') {
                 alert('该邮箱已被注册，请直接登录');
@@ -294,6 +321,12 @@ class CloudSync {
 
         if (!email || !password) {
             alert('请填写邮箱和密码');
+            return;
+        }
+
+        // 检查是否处于离线模式
+        if (this.offlineMode) {
+            alert('⚠️ 当前为离线模式\n\n无法登录账号，应用将使用本地存储。\n\n如需使用云同步功能，请确保网络可以访问 Firebase 服务后重新加载页面。');
             return;
         }
 
@@ -323,6 +356,16 @@ class CloudSync {
         } catch (error) {
             console.error('登录失败:', error);
             this.setSyncingStatus(false);
+            
+            // 网络或配置错误，切换到离线模式
+            if (error.code === 'auth/network-request-failed' || 
+                error.code === 'auth/configuration-not-found' ||
+                error.message.includes('network') ||
+                error.message.includes('configuration')) {
+                alert('⚠️ 无法连接到云端服务\n\n正在切换到离线模式...');
+                this.enableOfflineMode();
+                return;
+            }
             
             if (error.code === 'auth/user-not-found') {
                 alert('该邮箱未注册，请先注册');
@@ -570,13 +613,6 @@ class CloudSync {
     openUserModal() {
         const modal = document.getElementById('authModal');
         modal.classList.add('active');
-        
-        // 调试：检查模态框样式
-        console.log('打开模态框');
-        console.log('模态框类名:', modal.className);
-        console.log('模态框样式:', window.getComputedStyle(modal).display);
-        console.log('模态框justify-content:', window.getComputedStyle(modal).justifyContent);
-        console.log('模态框align-items:', window.getComputedStyle(modal).alignItems);
         
         if (this.currentUser) {
             // 已登录，显示用户信息
