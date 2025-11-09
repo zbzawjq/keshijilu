@@ -63,6 +63,8 @@ class CloudSync {
                     this.updateUserStatus(user.email);
                     this.startRealtimeSync();
                     this.hideLoginOverlay();
+                    // 关闭认证模态框
+                    this.closeAuthModal(true);
                 } else {
                     console.log('用户未登录');
                     this.updateUserStatus(null);
@@ -397,9 +399,10 @@ class CloudSync {
             // 登录成功后下载云端数据
             await this.downloadCloudData();
             
-            this.hideLoginOverlay();
-            this.closeAuthModal(true); // 强制关闭模态框
+            // 登录成功后，onAuthStateChanged会自动处理所有状态更新和UI显示
             this.setSyncingStatus(false);
+            
+            // 显示成功提示
             alert('✅ 登录成功！欢迎回来！');
         } catch (error) {
             console.error('登录失败:', error);
