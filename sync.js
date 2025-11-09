@@ -122,6 +122,9 @@ class CloudSync {
             modal.classList.remove('active');
         }
         
+        // 离线模式也添加logged-in类，显示渐变背景
+        document.body.classList.add('logged-in');
+        
         // 更新状态显示
         const userStatusText = document.getElementById('userStatusText');
         const userStatusIcon = document.getElementById('userStatusIcon');
@@ -395,7 +398,7 @@ class CloudSync {
             await this.downloadCloudData();
             
             this.hideLoginOverlay();
-            this.closeAuthModal();
+            this.closeAuthModal(true); // 强制关闭模态框
             this.setSyncingStatus(false);
             alert('✅ 登录成功！欢迎回来！');
         } catch (error) {
@@ -444,7 +447,9 @@ class CloudSync {
             localStorage.removeItem('rememberedPassword');
             localStorage.removeItem('rememberMe');
             
-            this.closeAuthModal();
+            // 退出后显示登录遮罩层，不是关闭模态框
+            this.showLoginOverlay();
+            
             alert('已退出登录');
         } catch (error) {
             console.error('退出登录失败:', error);
@@ -638,10 +643,14 @@ class CloudSync {
             userBtn.classList.add('logged-in');
             userStatusIcon.textContent = '👤';
             userStatusText.textContent = email.split('@')[0];
+            // 登录后给body添加logged-in类，显示渐变背景
+            document.body.classList.add('logged-in');
         } else {
             userBtn.classList.remove('logged-in');
             userStatusIcon.textContent = '👤';
             userStatusText.textContent = '登录';
+            // 未登录时移除logged-in类，使用默认浅色背景
+            document.body.classList.remove('logged-in');
         }
     }
 
@@ -686,18 +695,23 @@ class CloudSync {
     }
 
     // 关闭认证模态框
-    closeAuthModal() {
-        // 如果用户未登录，不允许关闭模态框
-        if (!this.currentUser) {
+    closeAuthModal(force = false) {
+        // 如果用户未登录且不是强制关闭，不允许关闭模态框
+        if (!this.currentUser && !force) {
             alert('请先登录后才能使用应用');
             return;
         }
         
         const modal = document.getElementById('authModal');
-        modal.classList.remove('active');
+        if (modal) {
+            modal.classList.remove('active');
+        }
         
         // 登录后显示关闭按钮
-        document.getElementById('authModalClose').style.display = 'block';
+        const closeBtn = document.getElementById('authModalClose');
+        if (closeBtn) {
+            closeBtn.style.display = 'block';
+        }
     }
 
     // 显示登录表单
@@ -755,6 +769,12 @@ class CloudSync {
         // 锁定body滚动，防止显示主页内容
         document.body.style.overflow = 'hidden';
         
+        // 隐藏主页内容
+        const mainContent = document.getElementById('mainContent');
+        if (mainContent) {
+            mainContent.style.display = 'none';
+        }
+        
         // 自动打开认证模态框
         setTimeout(() => {
             this.openUserModal();
@@ -770,6 +790,12 @@ class CloudSync {
         
         // 恢复body滚动
         document.body.style.overflow = '';
+        
+        // 显示主页内容
+        const mainContent = document.getElementById('mainContent');
+        if (mainContent) {
+            mainContent.style.display = 'block';
+        }
     }
 
     // 直接显示登录表单（从欢迎界面点击）
