@@ -73,6 +73,7 @@ class SalaryTracker {
         this.classes.push(classData);
         this.saveClasses();
         this.updateStudentSelect();
+        this.renderClassList(); // 立即刷新班级列表显示
     }
 
     deleteClass(id) {
@@ -81,6 +82,7 @@ class SalaryTracker {
             this.saveClasses();
             this.renderClassList();
             this.updateStudentSelect();
+            this.showSuccessMessage('班级删除成功！'); // 添加成功提示
         }
     }
 
@@ -122,6 +124,7 @@ class SalaryTracker {
         this.students.push(student);
         this.saveStudents();
         this.updateStudentSelect();
+        this.renderStudentList(); // 立即刷新学生列表显示
     }
 
     deleteStudent(id) {
@@ -130,6 +133,7 @@ class SalaryTracker {
             this.saveStudents();
             this.updateStudentSelect();
             this.renderStudentList();
+            this.showSuccessMessage('学生删除成功！'); // 添加成功提示
         }
     }
 
@@ -211,6 +215,14 @@ class SalaryTracker {
         this.updateSummaryMonthFilter();
         this.updateSummary();
         this.updateMonthFilter();
+        
+        // 自动切换到新记录的月份，确保用户能看到新添加的记录
+        const recordMonth = record.date.substring(0, 7); // 格式：YYYY-MM
+        document.getElementById('monthFilter').value = recordMonth;
+        document.getElementById('monthTotalFilter').value = recordMonth;
+        document.getElementById('monthHoursFilter').value = recordMonth;
+        
+        this.updateSummary(); // 更新统计数据以反映新的月份筛选
         this.renderRecords();
         this.showSuccessMessage('课时记录添加成功！');
     }
