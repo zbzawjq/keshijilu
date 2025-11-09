@@ -36,7 +36,7 @@ class SalaryTracker {
     saveRecords() {
         localStorage.setItem('teacherSalaryRecords', JSON.stringify(this.records));
         // 自动同步到云端
-        if (cloudSync && cloudSync.getSyncInfo().enabled) {
+        if (cloudSync && cloudSync.isLoggedIn && cloudSync.isLoggedIn()) {
             cloudSync.uploadLocalData().catch(err => console.error('自动同步失败:', err));
         }
     }
@@ -62,11 +62,11 @@ class SalaryTracker {
         console.log('从 localStorage 读取的数据:', saved);
         
         // 自动同步到云端
-        if (cloudSync && cloudSync.getSyncInfo().enabled) {
+        if (cloudSync && cloudSync.isLoggedIn && cloudSync.isLoggedIn()) {
             console.log('开始云同步...');
             cloudSync.uploadLocalData().catch(err => console.error('自动同步失败:', err));
         } else {
-            console.log('云同步未启用');
+            console.log('云同步未启用或未登录');
         }
     }
 
@@ -78,7 +78,7 @@ class SalaryTracker {
     saveClasses() {
         localStorage.setItem('teacherClasses', JSON.stringify(this.classes));
         // 自动同步到云端
-        if (cloudSync && cloudSync.getSyncInfo().enabled) {
+        if (cloudSync && cloudSync.isLoggedIn && cloudSync.isLoggedIn()) {
             cloudSync.uploadLocalData().catch(err => console.error('自动同步失败:', err));
         }
     }
