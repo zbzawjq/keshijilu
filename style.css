@@ -1641,12 +1641,17 @@ input:focus, select:focus {
 /* 认证模态框增大样式 */
 #authModal.auth-modal-large {
     z-index: 10000 !important; /* 高于登录遮罩层 */
-    display: flex !important;
+    display: none; /* 默认隐藏 */
     justify-content: center !important;
     align-items: center !important;
     padding: 20px; /* 添加内边距，防止模态框贴边 */
     box-sizing: border-box;
     background-color: transparent !important; /* 透明背景，使用登录遮罩层的背景 */
+}
+
+/* 认证模态框激活时显示 */
+#authModal.auth-modal-large.active {
+    display: flex !important;
 }
 
 #authModal.auth-modal-large .modal-content {
