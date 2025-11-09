@@ -317,6 +317,12 @@ class CloudSync {
                 return;
             }
             
+            // 处理频率限制错误
+            if (error.code === 'auth/too-many-requests') {
+                alert('❌ 操作过于频繁\n\nFirebase 检测到异常活动，已暂时限制访问\n\n请稍后再试（建议等待 15-30 分钟）\n\n或者直接使用离线模式');
+                return;
+            }
+            
             if (error.code === 'auth/email-already-in-use') {
                 alert('该邮箱已被注册，请直接登录');
             } else if (error.code === 'auth/invalid-email') {
@@ -403,6 +409,12 @@ class CloudSync {
                 error.message.includes('configuration')) {
                 alert('⚠️ 无法连接到云端服务\n\n正在切换到离线模式...');
                 this.enableOfflineMode();
+                return;
+            }
+            
+            // 处理频率限制错误
+            if (error.code === 'auth/too-many-requests') {
+                alert('❌ 登录尝试过于频繁\n\nFirebase 已暂时限制访问\n\n请稍后再试（建议等待 15-30 分钟）\n\n或者直接使用离线模式');
                 return;
             }
             
@@ -740,6 +752,9 @@ class CloudSync {
             overlay.style.display = 'flex';
         }
         
+        // 锁定body滚动，防止显示主页内容
+        document.body.style.overflow = 'hidden';
+        
         // 自动打开认证模态框
         setTimeout(() => {
             this.openUserModal();
@@ -752,6 +767,9 @@ class CloudSync {
         if (overlay) {
             overlay.style.display = 'none';
         }
+        
+        // 恢复body滚动
+        document.body.style.overflow = '';
     }
 
     // 直接显示登录表单（从欢迎界面点击）
