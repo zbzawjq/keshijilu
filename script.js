@@ -122,6 +122,8 @@ class SalaryTracker {
     addStudent(student) {
         student.id = Date.now();
         this.students.push(student);
+        console.log('添加学生:', student.name, '当前学生总数:', this.students.length);
+        console.log('当前所有学生:', this.students.map(s => s.name));
         this.saveStudents();
         this.updateStudentSelect();
         this.renderStudentList(); // 立即刷新学生列表显示
@@ -170,6 +172,13 @@ class SalaryTracker {
 
     updateStudentSelect() {
         const select = document.getElementById('studentSelect');
+        if (!select) {
+            console.error('找不到学生选择框元素');
+            return;
+        }
+        
+        console.log('更新学生选择框，学生数量:', this.students.length, '班级数量:', this.classes.length);
+        
         select.innerHTML = '';
         
         // 添加空白默认选项
@@ -188,8 +197,11 @@ class SalaryTracker {
                 option.textContent = student.name;
                 option.dataset.type = 'student';
                 studentGroup.appendChild(option);
+                console.log('添加学生选项:', student.name);
             });
             select.appendChild(studentGroup);
+        } else {
+            console.log('没有学生数据');
         }
         
         // 添加班级选项
@@ -202,9 +214,12 @@ class SalaryTracker {
                 option.textContent = `${classData.name} (${classData.size}人)`;
                 option.dataset.type = 'class';
                 classGroup.appendChild(option);
+                console.log('添加班级选项:', classData.name);
             });
             select.appendChild(classGroup);
         }
+        
+        console.log('选择框更新完成，总选项数:', select.options.length);
     }
 
     addRecord(record) {
@@ -1482,13 +1497,17 @@ class SalaryTracker {
 
     // 重新加载数据（用于云端同步更新后）
     reloadData() {
+        console.log('重新加载数据前 - 学生数:', this.students.length, '班级数:', this.classes.length);
         this.records = this.loadRecords();
         this.students = this.loadStudents();
         this.classes = this.loadClasses();
+        console.log('重新加载数据后 - 学生数:', this.students.length, '班级数:', this.classes.length);
         this.updateSummary();
         this.updateMonthFilter();
         this.updateStudentSelect();
         this.renderRecords();
+        this.renderStudentList();
+        this.renderClassList();
         console.log('数据已从云端重新加载');
     }
 }
