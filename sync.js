@@ -237,7 +237,17 @@ class CloudSync {
         if (rememberMe && savedEmail && savedPassword) {
             try {
                 console.log('尝试自动登录...');
-                await this.auth.signInWithEmailAndPassword(savedEmail, savedPassword);
+                const userCredential = await this.auth.signInWithEmailAndPassword(savedEmail, savedPassword);
+                
+                // 检查邮箱是否已验证
+                if (!userCredential.user.emailVerified) {
+                    console.log('邮箱未验证，自动登录失败');
+                    await this.auth.signOut();
+                    // 清除保存的凭据，因为账号未验证
+                    localStorage.removeItem('rememberedEmail');
+                    localStorage.removeItem('rememberedPassword');
+                    localStorage.removeItem('rememberMe');
+                }
             } catch (error) {
                 console.log('自动登录失败:', error.message);
                 // 清除无效的保存凭据
@@ -280,13 +290,19 @@ class CloudSync {
             const userCredential = await this.auth.createUserWithEmailAndPassword(email, password);
             console.log('注册成功:', userCredential.user.email);
             
-            // 注册成功后上传本地数据
-            await this.uploadLocalData();
+            // 发送邮箱验证邮件
+            await userCredential.user.sendEmailVerification();
             
-            alert('注册成功！欢迎使用课时计算器！');
-            this.hideLoginOverlay();
-            this.closeAuthModal();
+            // 注册成功后先退出登录，要求用户验证邮箱后再登录
+            await this.auth.signOut();
+            
             this.setSyncingStatus(false);
+            
+            // 显示注册成功提示
+            alert('✅ 注册成功！\n\n📧 验证邮件已发送到您的邮箱\n请查收邮件并点击验证链接\n\n验证完成后，请使用邮箱和密码登录');
+            
+            // 切换到登录表单
+            this.showLoginForm();
         } catch (error) {
             console.error('注册失败:', error);
             this.setSyncingStatus(false);
@@ -333,6 +349,29 @@ class CloudSync {
         try {
             this.setSyncingStatus(true, '登录中...');
             const userCredential = await this.auth.signInWithEmailAndPassword(email, password);
+            
+            // 检查邮箱是否已验证
+            if (!userCredential.user.emailVerified) {
+                // 邮箱未验证，退出登录
+                await this.auth.signOut();
+                this.setSyncingStatus(false);
+                
+                // 询问是否重新发送验证邮件
+                const resend = confirm('❌ 邮箱尚未验证\n\n请先验证邮箱后再登录\n\n是否重新发送验证邮件？');
+                if (resend) {
+                    try {
+                        // 重新登录以获取用户对象
+                        const tempCredential = await this.auth.signInWithEmailAndPassword(email, password);
+                        await tempCredential.user.sendEmailVerification();
+                        await this.auth.signOut();
+                        alert('✅ 验证邮件已重新发送\n\n请查收邮件并点击验证链接');
+                    } catch (err) {
+                        alert('❌ 发送验证邮件失败：' + err.message);
+                    }
+                }
+                return;
+            }
+            
             console.log('登录成功:', userCredential.user.email);
             
             // 处理记住密码
@@ -352,7 +391,7 @@ class CloudSync {
             this.hideLoginOverlay();
             this.closeAuthModal();
             this.setSyncingStatus(false);
-            alert('登录成功！欢迎回来！');
+            alert('✅ 登录成功！欢迎回来！');
         } catch (error) {
             console.error('登录失败:', error);
             this.setSyncingStatus(false);
