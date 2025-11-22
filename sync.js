@@ -76,6 +76,12 @@ class CloudSync {
                     try {
                         await this.downloadCloudData();
                         console.log('云端数据同步完成');
+                        
+                        // 下载完成后立即刷新页面数据
+                        if (window.tracker && typeof window.tracker.reloadData === 'function') {
+                            console.log('刷新页面数据显示...');
+                            window.tracker.reloadData();
+                        }
                     } catch (error) {
                         console.error('云端数据同步失败:', error);
                     }
