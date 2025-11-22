@@ -57,9 +57,18 @@ class CloudSync {
             // 监听用户登录状态
             this.auth.onAuthStateChanged(async (user) => {
                 clearTimeout(networkTimeout); // 清除超时
+                
+                // 如果用户发生变化，清除本地数据以防止数据混淆
+                if (user && this.currentUser && user.uid !== this.currentUser.uid) {
+                    console.log('检测到用户切换，清除本地数据');
+                    localStorage.removeItem('teacherSalaryRecords');
+                    localStorage.removeItem('teacherStudents');
+                    localStorage.removeItem('teacherClasses');
+                }
+                
                 this.currentUser = user;
                 if (user) {
-                    console.log('用户已登录:', user.email);
+                    console.log('用户已登录:', user.email, 'UID:', user.uid);
                     this.updateUserStatus(user.email);
                     
                     // 登录后立即下载云端数据
@@ -426,7 +435,7 @@ class CloudSync {
                         window.tracker.reloadData();
                         alert('✅ 登录成功！数据已同步！');
                     } else {
-                        alert('✅ 登录成功！\n\n💡 请手动刷新页面以加载最新数据（按F5）');
+                        alert('✅ 登录成功！数据已同步！');
                     }
                 }, 1000);
             }
@@ -464,7 +473,7 @@ class CloudSync {
 
     // 用户退出登录
     async logout() {
-        if (!confirm('确定要退出登录吗？退出后将停止数据同步。')) {
+        if (!confirm('确定要退出登录吗？退出后将停止数据同步，本地数据将被清除。')) {
             return;
         }
 
@@ -476,10 +485,16 @@ class CloudSync {
             localStorage.removeItem('rememberedPassword');
             localStorage.removeItem('rememberMe');
             
+            // 清除本地数据，防止数据混淆
+            console.log('退出登录，清除本地数据');
+            localStorage.removeItem('teacherSalaryRecords');
+            localStorage.removeItem('teacherStudents');
+            localStorage.removeItem('teacherClasses');
+            
             // 退出后显示登录遮罩层，不是关闭模态框
             this.showLoginOverlay();
             
-            alert('已退出登录');
+            alert('已退出登录，本地数据已清除');
         } catch (error) {
             console.error('退出登录失败:', error);
             alert('退出登录失败: ' + error.message);
@@ -502,6 +517,7 @@ class CloudSync {
             this.isSyncing = true;
             
             const userId = this.currentUser.uid;
+            console.log('上传数据 - 用户ID:', userId, '邮箱:', this.currentUser.email);
             const docRef = this.db.collection('userData').doc(userId);
 
             // 获取本地数据
@@ -544,6 +560,7 @@ class CloudSync {
 
         try {
             const userId = this.currentUser.uid;
+            console.log('下载数据 - 用户ID:', userId, '邮箱:', this.currentUser.email);
             const docRef = this.db.collection('userData').doc(userId);
             const doc = await docRef.get();
 
@@ -607,6 +624,7 @@ class CloudSync {
         if (!this.currentUser || !this.db) return;
 
         const userId = this.currentUser.uid;
+        console.log('开启实时同步 - 用户ID:', userId, '邮箱:', this.currentUser.email);
         const docRef = this.db.collection('userData').doc(userId);
 
         // 监听云端数据变化
