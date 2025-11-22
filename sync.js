@@ -78,10 +78,22 @@ class CloudSync {
                         console.log('云端数据同步完成');
                         
                         // 下载完成后立即刷新页面数据
-                        if (window.tracker && typeof window.tracker.reloadData === 'function') {
-                            console.log('刷新页面数据显示...');
-                            window.tracker.reloadData();
-                        }
+                        // 使用延迟确保tracker已经初始化
+                        setTimeout(() => {
+                            if (window.tracker && typeof window.tracker.reloadData === 'function') {
+                                console.log('刷新页面数据显示...');
+                                window.tracker.reloadData();
+                            } else {
+                                console.warn('tracker未就绪，等待初始化...');
+                                // 再次尝试
+                                setTimeout(() => {
+                                    if (window.tracker && typeof window.tracker.reloadData === 'function') {
+                                        console.log('第二次尝试刷新页面数据...');
+                                        window.tracker.reloadData();
+                                    }
+                                }, 1000);
+                            }
+                        }, 500);
                     } catch (error) {
                         console.error('云端数据同步失败:', error);
                     }
@@ -428,23 +440,22 @@ class CloudSync {
             this.setSyncingStatus(false);
             
             // 强制刷新页面数据显示
-            if (window.tracker) {
-                console.log('登录后强制刷新页面数据...');
-                window.tracker.reloadData();
-                // 显示成功提示
-                alert('✅ 登录成功！数据已同步！');
-            } else {
-                // 如果tracker未初始化，延迟刷新或提示用户手动刷新
-                console.warn('tracker未就绪，1秒后重试...');
-                setTimeout(() => {
-                    if (window.tracker) {
-                        window.tracker.reloadData();
-                        alert('✅ 登录成功！数据已同步！');
-                    } else {
-                        alert('✅ 登录成功！数据已同步！');
-                    }
-                }, 1000);
-            }
+            // 使用多次尝试确保数据刷新
+            const tryReload = (attempts = 0) => {
+                if (window.tracker && typeof window.tracker.reloadData === 'function') {
+                    console.log('登录后强制刷新页面数据...');
+                    window.tracker.reloadData();
+                    alert('✅ 登录成功！数据已同步！');
+                } else if (attempts < 5) {
+                    console.warn(`tracker未就绪，第${attempts + 1}次重试...`);
+                    setTimeout(() => tryReload(attempts + 1), 500);
+                } else {
+                    console.error('tracker初始化失败，请刷新页面');
+                    alert('✅ 登录成功！数据已同步！');
+                }
+            };
+            
+            setTimeout(() => tryReload(), 300);
         } catch (error) {
             console.error('登录失败:', error);
             this.setSyncingStatus(false);
