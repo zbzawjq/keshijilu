@@ -1382,6 +1382,23 @@ class SalaryTracker {
             this.showTimePicker('classEndTime');
         });
 
+        // 互动卡片事件绑定
+        document.getElementById('moodCard').addEventListener('click', () => {
+            this.showMoodCard();
+        });
+
+        document.getElementById('healthCard').addEventListener('click', () => {
+            this.showHealthCard();
+        });
+
+        document.getElementById('encourageCard').addEventListener('click', () => {
+            this.showEncourageCard();
+        });
+
+        document.getElementById('jokeCard').addEventListener('click', () => {
+            this.showJokeCard();
+        });
+
         // 表单提交
         document.getElementById('recordForm').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -1580,7 +1597,7 @@ class SalaryTracker {
             "课间休息一下，伸个懒腰，放松一下眼睛！👀",
             "今天记得按时吃饭，身体是革命的本钱！🍱",
             "晚上早点休息，充足的睡眠才能有好状态！😴",
-            "周末记得放松一下，劳逸结合才能走得更远！🎮",
+            "记得放松一下，劳逸结合才能走得更远！🎮",
             
             // 正能量
             "教育需要耐心，而你拥有最好的耐心！🌸",
@@ -1628,6 +1645,173 @@ class SalaryTracker {
         
         // 每10秒轮播一次
         setInterval(updateQuote, 10000);
+    }
+
+    // 显示情绪卡片
+    showMoodCard() {
+        const modal = document.getElementById('interactiveModal');
+        const title = document.getElementById('interactiveModalTitle');
+        const content = document.getElementById('interactiveModalContent');
+        
+        title.textContent = '😊 关心你的情绪';
+        content.innerHTML = `
+            <span class="content-icon">😊</span>
+            <div class="content-text">今天心情怎么样？选择你的情绪吧~</div>
+            <div class="mood-options">
+                <div class="mood-option" onclick="tracker.selectMood('😄', '开心')">😄<br>开心</div>
+                <div class="mood-option" onclick="tracker.selectMood('😊', '愉快')">😊<br>愉快</div>
+                <div class="mood-option" onclick="tracker.selectMood('😌', '平静')">😌<br>平静</div>
+                <div class="mood-option" onclick="tracker.selectMood('😔', '有点累')">😔<br>有点累</div>
+                <div class="mood-option" onclick="tracker.selectMood('😢', '需要安慰')">😢<br>需要安慰</div>
+                <div class="mood-option" onclick="tracker.selectMood('😤', '有点烦')">😤<br>有点烦</div>
+            </div>
+        `;
+        modal.classList.add('show');
+    }
+
+    // 选择情绪
+    selectMood(emoji, mood) {
+        const content = document.getElementById('interactiveModalContent');
+        const responses = {
+            '😄': '太好了！保持这份好心情，你的快乐会感染每一个学生！',
+            '😊': '很棒！保持愉快的心情，教学会更轻松有趣！',
+            '😌': '平静也是一种力量，愿你内心宁静，教学从容。',
+            '😔': '辛苦了！记得适当休息，照顾好自己才能更好地照顾学生。',
+            '😢': '抱抱你~ 如果有什么烦恼，可以和朋友聊聊，或者给自己放个假。',
+            '😤': '理解你的感受，深呼吸，给自己一点时间，一切都会好起来的。'
+        };
+        
+        content.innerHTML = `
+            <span class="content-icon">${emoji}</span>
+            <div class="content-text">你选择了：${mood}</div>
+            <div class="content-text">${responses[emoji]}</div>
+            <div style="margin-top: 20px;">
+                <button class="btn-primary" onclick="tracker.closeInteractiveModal()">谢谢关心 ❤️</button>
+            </div>
+        `;
+    }
+
+    // 显示健康卡片
+    showHealthCard() {
+        const modal = document.getElementById('interactiveModal');
+        const title = document.getElementById('interactiveModalTitle');
+        const content = document.getElementById('interactiveModalContent');
+        
+        title.textContent = '💪 关心你的健康';
+        content.innerHTML = `
+            <span class="content-icon">💪</span>
+            <div class="content-text">身体是革命的本钱，要好好照顾自己哦！</div>
+            <ul class="health-tips">
+                <li>多喝水，保持身体水分充足</li>
+                <li>注意休息，不要过度劳累</li>
+                <li>适当运动，增强体质</li>
+                <li>规律作息，保证充足睡眠</li>
+                <li>注意用嗓，保护嗓子健康</li>
+                <li>定期体检，关注身体健康</li>
+                <li>保持好心情，心情好身体才会好</li>
+            </ul>
+            <div style="margin-top: 20px;">
+                <button class="btn-primary" onclick="tracker.closeInteractiveModal()">我会注意的 ❤️</button>
+            </div>
+        `;
+        modal.classList.add('show');
+    }
+
+    // 显示鼓励卡片
+    showEncourageCard() {
+        const modal = document.getElementById('interactiveModal');
+        const title = document.getElementById('interactiveModalTitle');
+        const content = document.getElementById('interactiveModalContent');
+        
+        const encouragements = [
+            '你是最棒的老师！你的付出会改变学生的未来！',
+            '教师是太阳底下最光辉的职业，你正在发光发热！',
+            '每一个学生都是你播下的种子，终有一天会开花结果！',
+            '你的耐心和爱心，是学生成长路上最温暖的阳光！',
+            '坚持下去，你的努力一定会有回报的！',
+            '你是学生心中的明灯，照亮他们前行的路！',
+            '感谢你的辛勤付出，世界因你而更美好！',
+            '你的每一堂课，都在为学生的未来添砖加瓦！',
+            '相信自己，你已经做得很好了！',
+            '你的热情和专注，是学生最好的榜样！'
+        ];
+        
+        const randomEncouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
+        
+        title.textContent = '🌟 为你加油';
+        content.innerHTML = `
+            <span class="content-icon">🌟</span>
+            <div class="encouragement-text">${randomEncouragement}</div>
+            <div style="margin-top: 20px;">
+                <button class="btn-primary" onclick="tracker.showEncourageCard()">再来一句 💪</button>
+                <button class="btn-secondary" onclick="tracker.closeInteractiveModal()" style="margin-left: 10px;">谢谢鼓励 ❤️</button>
+            </div>
+        `;
+        modal.classList.add('show');
+    }
+
+    // 显示笑话卡片
+    showJokeCard() {
+        const modal = document.getElementById('interactiveModal');
+        const title = document.getElementById('interactiveModalTitle');
+        const content = document.getElementById('interactiveModalContent');
+        
+        const jokes = [
+            {
+                question: '为什么老师总是说"这道题我讲过"？',
+                answer: '因为老师想让学生知道，他们其实都听过了，只是...忘了 😂'
+            },
+            {
+                question: '老师最怕什么？',
+                answer: '最怕学生说"老师，这道题您刚才讲过了"然后还是不会做 😅'
+            },
+            {
+                question: '为什么老师总是说"我再讲最后一道题"？',
+                answer: '因为"最后一道题"后面还有"最后一道题"的"最后一道题" 😄'
+            },
+            {
+                question: '老师：为什么作业没交？',
+                answer: '学生：因为您说过，作业要用心做，所以我还在用心思考... 🤔'
+            },
+            {
+                question: '课堂上最安静的时候是什么时候？',
+                answer: '老师问"谁来回答这个问题？"的时候 🤫'
+            },
+            {
+                question: '为什么老师总是说"这道题很简单"？',
+                answer: '因为对老师来说确实很简单，但对学生来说... 😂'
+            },
+            {
+                question: '老师：你为什么迟到？',
+                answer: '学生：因为您说过，迟到总比不到好！老师：...... 😅'
+            },
+            {
+                question: '最让老师崩溃的话是什么？',
+                answer: '学生：老师，您刚才讲的我都听懂了，但是... 🤯'
+            }
+        ];
+        
+        const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
+        
+        title.textContent = '😄 讲个笑话';
+        content.innerHTML = `
+            <span class="content-icon">😄</span>
+            <div class="joke-text">
+                <strong>${randomJoke.question}</strong><br><br>
+                ${randomJoke.answer}
+            </div>
+            <div style="margin-top: 20px;">
+                <button class="btn-primary" onclick="tracker.showJokeCard()">再来一个 😂</button>
+                <button class="btn-secondary" onclick="tracker.closeInteractiveModal()" style="margin-left: 10px;">谢谢，我笑了 😊</button>
+            </div>
+        `;
+        modal.classList.add('show');
+    }
+
+    // 关闭互动模态框
+    closeInteractiveModal() {
+        const modal = document.getElementById('interactiveModal');
+        modal.classList.remove('show');
     }
 }
 
