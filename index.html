@@ -80,7 +80,7 @@
                             <option value="">本月总课时</option>
                         </select>
                     </div>
-                    <div class="card-value" id="monthHours">0</div>
+                    <div class="card-value" id="monthHours">0 小时</div>
                 </div>
             </div>
             <div class="card">
@@ -88,38 +88,6 @@
                 <div class="card-content">
                     <div class="card-label">累计总工资</div>
                     <div class="card-value" id="totalSalary">¥0.00</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 互动关怀卡片区域 -->
-        <div class="interactive-cards">
-            <div class="interactive-card" id="moodCard">
-                <div class="interactive-card-icon">😊</div>
-                <div class="interactive-card-content">
-                    <div class="interactive-card-title">关心你的情绪</div>
-                    <div class="interactive-card-desc">今天心情怎么样？</div>
-                </div>
-            </div>
-            <div class="interactive-card" id="healthCard">
-                <div class="interactive-card-icon">💪</div>
-                <div class="interactive-card-content">
-                    <div class="interactive-card-title">关心你的健康</div>
-                    <div class="interactive-card-desc">身体还好吗？</div>
-                </div>
-            </div>
-            <div class="interactive-card" id="encourageCard">
-                <div class="interactive-card-icon">🌟</div>
-                <div class="interactive-card-content">
-                    <div class="interactive-card-title">为你加油</div>
-                    <div class="interactive-card-desc">需要鼓励吗？</div>
-                </div>
-            </div>
-            <div class="interactive-card" id="jokeCard">
-                <div class="interactive-card-icon">😄</div>
-                <div class="interactive-card-content">
-                    <div class="interactive-card-title">讲个笑话</div>
-                    <div class="interactive-card-desc">放松一下~</div>
                 </div>
             </div>
         </div>
@@ -350,19 +318,6 @@
             </div>
             <div class="modal-body">
                 <div id="recordDetailContent" class="record-detail-content"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 互动内容模态框 -->
-    <div id="interactiveModal" class="modal">
-        <div class="modal-content interactive-modal-content">
-            <div class="modal-header">
-                <h3 id="interactiveModalTitle">互动内容</h3>
-                <button class="modal-close" onclick="tracker.closeInteractiveModal()">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="interactiveModalContent" class="interactive-content"></div>
             </div>
         </div>
     </div>
