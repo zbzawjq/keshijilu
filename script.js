@@ -23,6 +23,28 @@ class SalaryTracker {
         this.initTimePicker();
     }
 
+    // 重新加载数据（用于登录后刷新）
+    reloadData() {
+        console.log('重新加载数据...');
+        // 重新从localStorage加载数据
+        this.records = this.loadRecords();
+        this.students = this.loadStudents();
+        this.classes = this.loadClasses();
+        
+        // 刷新所有显示
+        this.updateSummaryMonthFilter();
+        this.updateSummary();
+        this.updateMonthFilter();
+        this.updateStudentSelect();
+        this.renderRecords();
+        
+        console.log('数据重新加载完成:', {
+            records: this.records.length,
+            students: this.students.length,
+            classes: this.classes.length
+        });
+    }
+
     setTodayDate() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('recordDate').value = today;
