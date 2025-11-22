@@ -5,17 +5,19 @@
 }
 
 :root {
-    --primary-color: #4f46e5;
-    --primary-hover: #4338ca;
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
     --secondary-color: #10b981;
     --danger-color: #ef4444;
-    --bg-color: #f8fafc;
+    --bg-color: #f1f5f9;
     --card-bg: #ffffff;
     --text-primary: #1e293b;
     --text-secondary: #64748b;
     --border-color: #e2e8f0;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+    --gradient-start: #6366f1;
+    --gradient-end: #8b5cf6;
 }
 
 body {
@@ -24,11 +26,13 @@ body {
     min-height: 100vh;
     padding: 20px;
     color: var(--text-primary);
+    transition: background 0.5s ease;
 }
 
 /* 登录后显示渐变背景 */
 body.logged-in {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
 }
 
 @media (max-width: 768px) {
@@ -86,17 +90,19 @@ header h1 {
 
 .card {
     background: var(--card-bg);
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 20px;
+    padding: 28px;
     box-shadow: var(--shadow-lg);
     display: flex;
     align-items: center;
     gap: 16px;
-    transition: transform 0.2s;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
 .card-icon {
@@ -172,9 +178,15 @@ header h1 {
 
 section {
     background: var(--card-bg);
-    border-radius: 16px;
-    padding: 30px;
+    border-radius: 20px;
+    padding: 32px;
     box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+}
+
+section:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
 h2 {
@@ -215,76 +227,113 @@ label {
 }
 
 input, select {
-    padding: 12px 16px;
+    padding: 14px 18px;
     border: 2px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 1rem;
-    transition: border-color 0.2s;
+    transition: all 0.3s ease;
     font-family: inherit;
+    background: white;
 }
 
 input:focus, select:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    transform: translateY(-1px);
 }
 
 .btn-primary, .btn-secondary, .btn-danger {
-    padding: 12px 24px;
+    padding: 14px 28px;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     font-family: inherit;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before,
+.btn-secondary::before,
+.btn-danger::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:hover::before,
+.btn-secondary:hover::before,
+.btn-danger:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .btn-primary {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
     color: white;
     width: 100%;
     margin-top: 8px;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(-1px);
 }
 
 .btn-secondary {
-    background: var(--secondary-color);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .btn-secondary:hover {
-    background: #059669;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 .btn-danger {
-    background: var(--danger-color);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .btn-danger:hover {
-    background: #dc2626;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
 }
 
 .btn-info {
-    background: #3b82f6;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
-    padding: 12px 24px;
+    padding: 14px 28px;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     font-family: inherit;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .btn-info:hover {
-    background: #2563eb;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
 }
 
 /* 手动同步按钮样式 */
@@ -387,31 +436,33 @@ input:focus, select:focus {
 }
 
 .record-item {
-    background: var(--bg-color);
+    background: white;
     border: 2px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 16px;
+    padding: 24px;
     display: grid;
     grid-template-columns: auto 1fr auto auto;
     gap: 20px;
     align-items: center;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
 }
 
 .record-item:hover {
     border-color: var(--primary-color);
-    box-shadow: var(--shadow);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
 .record-date {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 12px;
-    background: var(--primary-color);
+    padding: 14px;
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
     color: white;
-    border-radius: 8px;
-    min-width: 80px;
+    border-radius: 12px;
+    min-width: 85px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .record-date .day {
@@ -487,19 +538,21 @@ input:focus, select:focus {
 }
 
 .record-delete {
-    padding: 8px 16px;
+    padding: 10px 20px;
     background: transparent;
     border: 2px solid var(--danger-color);
     color: var(--danger-color);
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     font-weight: 600;
 }
 
 .record-delete:hover {
-    background: var(--danger-color);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .empty-state {
@@ -990,39 +1043,41 @@ input:focus, select:focus {
 }
 
 .btn-manage-student {
-    padding: 12px 20px;
-    background: #8b5cf6;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
     font-weight: 600;
     font-size: 0.95rem;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
 
 .btn-manage-student:hover {
-    background: #7c3aed;
-    transform: translateY(-1px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
 }
 
 .btn-manage-class {
-    padding: 12px 20px;
-    background: #10b981;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
     font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.3s;
+    font-weight: 600;
+    transition: all 0.3s ease;
     white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .btn-manage-class:hover {
-    background: #059669;
-    transform: translateY(-1px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 /* 学生管理模态框样式 */
@@ -1061,16 +1116,17 @@ input:focus, select:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px;
+    padding: 20px;
     background: white;
     border: 2px solid var(--border-color);
-    border-radius: 8px;
-    transition: all 0.2s;
+    border-radius: 14px;
+    transition: all 0.3s ease;
 }
 
 .student-item:hover {
     border-color: var(--primary-color);
-    box-shadow: var(--shadow);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
 .student-info {
@@ -1124,35 +1180,39 @@ input:focus, select:focus {
 }
 
 .btn-edit-student {
-    padding: 8px 16px;
+    padding: 10px 18px;
     background: transparent;
     border: 2px solid #3b82f6;
     color: #3b82f6;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
 }
 
 .btn-edit-student:hover {
-    background: #3b82f6;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .btn-delete-student {
-    padding: 8px 16px;
+    padding: 10px 18px;
     background: transparent;
     border: 2px solid var(--danger-color);
     color: var(--danger-color);
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
 }
 
 .btn-delete-student:hover {
-    background: var(--danger-color);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .btn-update {
@@ -1594,13 +1654,20 @@ input:focus, select:focus {
     bottom: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite, fadeIn 0.3s ease-in-out;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    animation: fadeIn 0.3s ease-in-out;
-    overflow: hidden; /* 防止滚动显示主页内容 */
+    overflow: hidden;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .login-overlay-content {
@@ -1610,11 +1677,12 @@ input:focus, select:focus {
 }
 
 .welcome-header h1 {
-    font-size: 3rem;
+    font-size: 3.5rem;
     color: white;
     margin-bottom: 20px;
-    font-weight: 700;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    font-weight: 800;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    letter-spacing: -1px;
 }
 
 .welcome-subtitle {
@@ -1626,12 +1694,14 @@ input:focus, select:focus {
 
 .welcome-notice {
     font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.95);
     margin-bottom: 40px;
-    padding: 16px 24px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 20px 28px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .welcome-buttons {
@@ -1643,41 +1713,64 @@ input:focus, select:focus {
 
 .btn-welcome-login,
 .btn-welcome-register {
-    padding: 18px 40px;
-    font-size: 1.1rem;
-    font-weight: 600;
+    padding: 20px 45px;
+    font-size: 1.15rem;
+    font-weight: 700;
     border: none;
     border-radius: 50px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.4s ease;
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    min-width: 180px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    min-width: 200px;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-welcome-login::before,
+.btn-welcome-register::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-welcome-login:hover::before,
+.btn-welcome-register:hover::before {
+    width: 400px;
+    height: 400px;
 }
 
 .btn-welcome-login {
     background: white;
-    color: var(--primary-color);
+    color: #6366f1;
 }
 
 .btn-welcome-login:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
 }
 
 .btn-welcome-register {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     color: white;
-    border: 2px solid white;
+    border: 3px solid white;
+    backdrop-filter: blur(10px);
 }
 
 .btn-welcome-register:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
 }
 
 .btn-welcome-login span:first-child,
