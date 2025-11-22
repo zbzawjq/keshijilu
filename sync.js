@@ -78,22 +78,26 @@ class CloudSync {
                         console.log('云端数据同步完成');
                         
                         // 下载完成后立即刷新页面数据
-                        // 使用延迟确保tracker已经初始化
-                        setTimeout(() => {
+                        // 使用智能重试机制确保tracker已经初始化
+                        const tryReloadData = (attempt = 1, maxAttempts = 10) => {
+                            console.log(`🔄 尝试刷新数据 (第${attempt}次)...`);
+                            console.log('window.tracker 存在:', !!window.tracker);
+                            console.log('reloadData 方法存在:', window.tracker && typeof window.tracker.reloadData === 'function');
+                            
                             if (window.tracker && typeof window.tracker.reloadData === 'function') {
-                                console.log('刷新页面数据显示...');
+                                console.log('✅ 开始刷新页面数据...');
                                 window.tracker.reloadData();
+                                console.log('✅ 数据刷新完成！');
+                            } else if (attempt < maxAttempts) {
+                                console.warn(`⚠️ tracker未就绪，${500}ms后重试...`);
+                                setTimeout(() => tryReloadData(attempt + 1, maxAttempts), 500);
                             } else {
-                                console.warn('tracker未就绪，等待初始化...');
-                                // 再次尝试
-                                setTimeout(() => {
-                                    if (window.tracker && typeof window.tracker.reloadData === 'function') {
-                                        console.log('第二次尝试刷新页面数据...');
-                                        window.tracker.reloadData();
-                                    }
-                                }, 1000);
+                                console.error('❌ tracker初始化失败，已达到最大重试次数');
                             }
-                        }, 500);
+                        };
+                        
+                        // 延迟1秒后开始尝试（给script.js足够的加载时间）
+                        setTimeout(() => tryReloadData(), 1000);
                     } catch (error) {
                         console.error('云端数据同步失败:', error);
                     }
@@ -440,22 +444,27 @@ class CloudSync {
             this.setSyncingStatus(false);
             
             // 强制刷新页面数据显示
-            // 使用多次尝试确保数据刷新
-            const tryReload = (attempts = 0) => {
+            // 使用智能重试机制
+            const tryReload = (attempts = 0, maxAttempts = 10) => {
+                console.log(`🔄 登录后尝试刷新数据 (第${attempts + 1}次)...`);
+                console.log('window.tracker 存在:', !!window.tracker);
+                console.log('reloadData 方法存在:', window.tracker && typeof window.tracker.reloadData === 'function');
+                
                 if (window.tracker && typeof window.tracker.reloadData === 'function') {
-                    console.log('登录后强制刷新页面数据...');
+                    console.log('✅ 登录后强制刷新页面数据...');
                     window.tracker.reloadData();
                     alert('✅ 登录成功！数据已同步！');
-                } else if (attempts < 5) {
-                    console.warn(`tracker未就绪，第${attempts + 1}次重试...`);
-                    setTimeout(() => tryReload(attempts + 1), 500);
+                } else if (attempts < maxAttempts) {
+                    console.warn(`⚠️ tracker未就绪，${500}ms后第${attempts + 2}次重试...`);
+                    setTimeout(() => tryReload(attempts + 1, maxAttempts), 500);
                 } else {
-                    console.error('tracker初始化失败，请刷新页面');
-                    alert('✅ 登录成功！数据已同步！');
+                    console.error('❌ tracker初始化失败，已达到最大重试次数');
+                    alert('✅ 登录成功！数据已同步！\n\n如果数据未显示，请刷新页面（F5）');
                 }
             };
             
-            setTimeout(() => tryReload(), 300);
+            // 延迟1秒后开始尝试
+            setTimeout(() => tryReload(), 1000);
         } catch (error) {
             console.error('登录失败:', error);
             this.setSyncingStatus(false);
